@@ -16,7 +16,7 @@ export default {
   // zobrazí v náhledu štítek „zástupný snímek“; po výměně za vlastní fotku nastavte false.
   hero: {
     heading: "Kuchyně světa u vás doma",
-    text: "Řekněte mi, na co máte chuť. Navrhnu menu a přijedu ho uvařit k vám domů. A jestli chcete slavnostně prostřít, s dcerou doladíme stůl květinami.",
+    text: "Řekněte mi, do které části světa vás mám vzít. Navrhnu menu a přijedu ho uvařit k vám domů. A jestli chcete slavnostně prostřít, s dcerou doladíme stůl květinami.",
     primaryCta: "Naplánovat večeři",
     secondaryCta: "Prohlédnout menu",
     photo: {
