@@ -35,7 +35,8 @@ function field(id, label, input, { hint = "" } = {}) {
         </div>`;
 }
 
-export function render({ demo = true } = {}) {
+// `offline`: statický náhled bez serveru – formulář po kontrole jen zobrazí demo hlášku.
+export function render({ demo = true, offline = false } = {}) {
   const c = content;
   const opts = menuOptions(c);
   const ct = c.contact;
@@ -77,6 +78,7 @@ export function render({ demo = true } = {}) {
 
   const config = {
     endpoint: c.form.endpoint,
+    offline: demo && offline,
     menuIds: opts.map((o) => o.id),
     maxGuests: c.form.maxGuests,
     messages: { success: c.form.success, error: c.form.error, demo: c.form.demoResult },
@@ -218,6 +220,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   await mkdir(dist, { recursive: true });
   await cp(path.join(root, "public"), dist, { recursive: true });
   const demo = !process.env.INQUIRY_WEBHOOK_URL;
-  await writeFile(path.join(dist, "index.html"), render({ demo }));
+  await writeFile(path.join(dist, "index.html"), render({ demo, offline: true }));
   console.log(`dist/ hotovo (${demo ? "demo formulář" : "ostrý formulář"})`);
 }

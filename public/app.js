@@ -39,7 +39,7 @@ function getToken(fresh = false) {
   }
   return tokenPromise;
 }
-form.addEventListener("focusin", () => getToken(), { once: true });
+if (!config.offline) form.addEventListener("focusin", () => getToken(), { once: true });
 
 function fieldBox(name) {
   return form.querySelector(`[data-field="${name}"]`);
@@ -100,6 +100,12 @@ form.addEventListener("submit", async (e) => {
 
   const { errors } = validateInquiry(data, config);
   if (Object.keys(errors).length) return showErrors(errors);
+
+  // Statický náhled bez serveru: nic se neodesílá.
+  if (config.offline) {
+    setStatus("demo", config.messages.demo);
+    return statusEl.focus();
+  }
 
   submitBtn.disabled = true;
   const label = submitBtn.textContent;
