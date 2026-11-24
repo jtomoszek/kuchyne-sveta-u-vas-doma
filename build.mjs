@@ -1,29 +1,27 @@
 // Sestaví index.html z content.mjs. `node build.mjs` vytvoří statickou verzi v dist/.
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import content from "./content.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
+const mark = readFileSync(path.join(root, "public/brand/mark.svg"), "utf8").trim();
 
 // Escapuje HTML a váže jednopísmenné předložky a spojky k dalšímu slovu (česká typografie).
 const esc = (s) =>
-  String(s).replace(/(^|[\s(„])([aiouksvzAIOUKSVZ]) /g, "$1$2 ").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  String(s)
+    .replace(/(^|[\s(„])([aiouksvzAIOUKSVZ]) /g, "$1$2\u00a0")
+    .replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 export function menuOptions(c = content) {
   return [...c.menus.items.map((m) => ({ id: m.id, name: m.name })), { id: c.menus.advice.id, name: c.menus.advice.name }];
 }
 
-function picture(photo, { eager = false, sizes = "100vw", cls = "" } = {}) {
-  const { mobile: m, desktop: d } = photo;
-  const img = `<picture>
-        <source media="(min-width: 900px)" srcset="${esc(d.src)}" width="${d.width}" height="${d.height}">
-        <img src="${esc(m.src)}" width="${m.width}" height="${m.height}" alt="${esc(photo.alt)}" sizes="${sizes}"${
-          eager ? ' fetchpriority="high" decoding="sync"' : ' loading="lazy" decoding="async"'
-        }>
-      </picture>`;
-  const tag = photo.placeholder ? `<span class="ph-tag">Zástupný snímek</span>` : "";
-  return `<div class="photo ${cls}">${img}${tag}</div>`;
+function img(photo, { eager = false, cls = "" } = {}) {
+  const size = photo.width ? ` width="${photo.width}" height="${photo.height}"` : "";
+  const load = eager ? ' fetchpriority="high" decoding="sync"' : ' loading="lazy" decoding="async"';
+  return `<img${cls ? ` class="${cls}"` : ""} src="${esc(photo.src)}" alt="${esc(photo.alt ?? "")}"${size}${load}>`;
 }
 
 function field(id, label, input, { hint = "" } = {}) {
@@ -35,6 +33,8 @@ function field(id, label, input, { hint = "" } = {}) {
         </div>`;
 }
 
+const brand = (c) => `<span class="brand-mark">${mark}</span><span class="brand-name">${esc(c.site.brand)}</span>`;
+
 // `offline`: statický náhled bez serveru – formulář po kontrole jen zobrazí demo hlášku.
 export function render({ demo = true, offline = false } = {}) {
   const c = content;
@@ -42,22 +42,28 @@ export function render({ demo = true, offline = false } = {}) {
   const ct = c.contact;
   const todo = (v, label) => (v ? esc(v) : demo ? `<span class="todo">${label} doplníme</span>` : "");
 
-  const menuCards = c.menus.items
+  const pillars = c.chef.pillars.map((p) => `<li><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`).join("\n          ");
+
+  const portrait = c.chef.portrait.src
+    ? `<li class="polaroid">${img(c.chef.portrait)}<p>${esc(c.chef.portrait.caption)}</p></li>`
+    : demo
+      ? `<li class="polaroid"><div class="polaroid-empty">Portrét Oksany doplníme</div><p>${esc(c.chef.portrait.caption)}</p></li>`
+      : "";
+  const gallery = c.chef.gallery
+    .map((g) => `<li class="polaroid">${img({ src: g.src, alt: "", width: 360, height: 360 })}<p>${esc(g.caption)}</p></li>`)
+    .join("\n          ");
+
+  const menuItems = c.menus.items
     .map(
-      (m) => `<li class="card">
-        ${picture(m.photo, { sizes: "(min-width: 900px) 60vw, 100vw" })}
-        <div class="card-body">
-          <h3>${esc(m.name)}</h3>
-          <p>${esc(m.text)}</p>
-          <a class="btn" href="#poptavka" data-menu="${esc(m.id)}">${esc(m.cta)}</a>
-        </div>
-      </li>`,
+      (m) => `<li>
+            <h3>${esc(m.name)}</h3>
+            <p>${esc(m.text)}</p>
+            <a class="btn btn-soft" href="#poptavka" data-menu="${esc(m.id)}">${esc(m.cta)}</a>
+          </li>`,
     )
     .join("\n");
 
-  const steps = c.steps.items
-    .map((s) => `<li><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></li>`)
-    .join("\n          ");
+  const steps = c.steps.items.map((s) => `<li><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></li>`).join("\n        ");
 
   const radios = opts
     .map(
@@ -69,12 +75,10 @@ export function render({ demo = true, offline = false } = {}) {
     todo(ct.name, "Jméno"),
     ct.email ? `<a href="mailto:${esc(ct.email)}">${esc(ct.email)}</a>` : todo("", "E-mail"),
     ct.phone ? `<a href="tel:${esc(ct.phone.replace(/\s/g, ""))}">${esc(ct.phone)}</a>` : todo("", "Telefon"),
+    ct.privacyUrl
+      ? `<a href="${esc(ct.privacyUrl)}">Zpracování osobních údajů</a>`
+      : todo("", "Odkaz na zpracování osobních údajů"),
   ].filter(Boolean);
-  const privacy = ct.privacyUrl
-    ? `<a href="${esc(ct.privacyUrl)}">Zpracování osobních údajů</a>`
-    : demo
-      ? `<span class="todo">Odkaz na zpracování osobních údajů doplníme</span>`
-      : "";
 
   const config = {
     endpoint: c.form.endpoint,
@@ -92,79 +96,104 @@ export function render({ demo = true, offline = false } = {}) {
   <title>${esc(c.site.title)}</title>
   <meta name="description" content="${esc(c.site.description)}">
   ${demo ? '<meta name="robots" content="noindex">' : ""}
-  <link rel="preload" as="image" href="${esc(c.hero.photo.mobile.src)}" media="(max-width: 899px)" fetchpriority="high">
-  <link rel="preload" as="image" href="${esc(c.hero.photo.desktop.src)}" media="(min-width: 900px)" fetchpriority="high">
+  <link rel="icon" href="brand/mark.svg" type="image/svg+xml">
+  <link rel="preload" as="image" href="${esc(c.hero.photo.src)}" fetchpriority="high">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500&family=La+Belle+Aurore&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip" href="#obsah">Přeskočit na obsah</a>
-  <header class="top">
-    <a class="brand" href="#uvod">${esc(c.site.brand)}</a>
-    <nav aria-label="Hlavní">
-      <a href="#menu">Menu</a>
-      <a href="#kvetiny">Květiny</a>
-      <a href="#poptavka">Poptávka</a>
-    </nav>
-  </header>
 
   <main id="obsah">
     <section class="hero" id="uvod">
-      ${picture(c.hero.photo, { eager: true, sizes: "(min-width: 900px) 50vw, 100vw", cls: "hero-photo" })}
-      <div class="hero-text">
+      ${img(c.hero.photo, { eager: true, cls: "hero-bg" })}
+      <header class="top">
+        <nav aria-label="Hlavní">
+          <a href="#oksana">Oksana</a>
+          <a href="#menu">Menu</a>
+          <a href="#kvetiny">Květiny</a>
+        </nav>
+        <a class="brand" href="#uvod" aria-label="${esc(c.site.brand)}">${brand(c)}</a>
+        <a class="btn btn-outline top-cta" href="#poptavka">Poptávka</a>
+      </header>
+      <div class="hero-content">
         <h1>${esc(c.hero.heading)}</h1>
-        <p class="lead">${esc(c.hero.text)}</p>
-        <div class="actions">
-          <a class="btn" href="#poptavka">${esc(c.hero.primaryCta)}</a>
-          <a class="link" href="#menu">${esc(c.hero.secondaryCta)}</a>
+        <div class="hero-side">
+          <p class="lead">${esc(c.hero.text)}</p>
+          <div class="actions">
+            <a class="btn btn-light" href="#poptavka">${esc(c.hero.primaryCta)}</a>
+            <a class="link" href="#menu">${esc(c.hero.secondaryCta)}</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="menu">
-      <div class="section-head">
-        <h2>${esc(c.menus.heading)}</h2>
-        <p>${esc(c.menus.text)}</p>
+    <section class="intro">
+      ${img(c.intro.photo, { cls: "intro-plate" })}
+      <p class="script intro-script">${esc(c.intro.script)}</p>
+    </section>
+
+    <section class="chef" id="oksana">
+      <div class="center">
+        ${img({ ...c.chef.illustration, width: 200, height: 200 }, { cls: "illu" })}
+        <p class="script">${esc(c.chef.kicker)}</p>
+        <h2 class="display">${esc(c.chef.heading)}</h2>
+        ${c.chef.paragraphs.map((p) => `<p class="body">${esc(p)}</p>`).join("\n        ")}
+        ${c.chef.memory ? `<p class="body">${esc(c.chef.memory)}</p>` : ""}
+        <blockquote class="script chef-quote">
+          <p>„${esc(c.chef.quote)}“</p>
+          <footer>— ${esc(c.chef.quoteBy)}</footer>
+        </blockquote>
       </div>
-      <ul class="cards">
-      ${menuCards}
-      <li class="card card-advice">
-        <div class="card-body">
-          <h3>${esc(c.menus.advice.name)}</h3>
-          <p>${esc(c.menus.advice.text)}</p>
-          <a class="btn btn-ghost" href="#poptavka" data-menu="${esc(c.menus.advice.id)}">${esc(c.menus.advice.cta)}</a>
-        </div>
-      </li>
+      <ul class="polaroids" aria-label="Fotografie">
+          ${portrait}
+          ${gallery}
+      </ul>
+      <ul class="cols">
+          ${pillars}
       </ul>
     </section>
 
-    <section class="section split" id="kvetiny">
-      ${picture(c.flowers.photo, { sizes: "(min-width: 900px) 55vw, 100vw" })}
-      <div class="split-text">
-        <h2>${esc(c.flowers.heading)}</h2>
-        <p>${esc(c.flowers.text)}</p>
+    <section class="menu" id="menu">
+      ${img(c.menus.photo, { cls: "menu-bg" })}
+      <div class="paper">
+        ${img({ ...c.menus.illustration, width: 100, height: 100 }, { cls: "illu illu-sm" })}
+        <h2>${esc(c.menus.heading)}</h2>
+        <p class="body">${esc(c.menus.text)}</p>
+        <ul class="menu-list">
+          ${menuItems}
+          <li>
+            <h3>${esc(c.menus.advice.name)}</h3>
+            <p>${esc(c.menus.advice.text)}</p>
+            <a class="btn btn-soft" href="#poptavka" data-menu="${esc(c.menus.advice.id)}">${esc(c.menus.advice.cta)}</a>
+          </li>
+        </ul>
+        ${c.menus.script ? `<p class="script paper-script">${esc(c.menus.script)}</p>` : ""}
       </div>
     </section>
 
-    <section class="section" id="jak">
-      <div class="section-head"><h2>${esc(c.steps.heading)}</h2></div>
-      <ol class="steps">
-          ${steps}
+    <section class="steps-section" id="jak">
+      <h2>${esc(c.steps.heading)}</h2>
+      <ol class="cols steps">
+        ${steps}
       </ol>
     </section>
 
-    <section class="section split split-rev" id="o-mne">
-      ${picture(c.about.photo, { sizes: "(min-width: 900px) 40vw, 100vw" })}
-      <div class="split-text">
-        <h2>${esc(c.about.heading)}</h2>
-        <p class="quote">${esc(c.about.text)}</p>
-        ${c.about.memory ? `<p>${esc(c.about.memory)}</p>` : ""}
+    <section class="flowers" id="kvetiny">
+      <div class="flowers-photo">${img(c.flowers.photo)}</div>
+      <div class="flowers-text">
+        <p class="script">${esc(c.flowers.kicker)}</p>
+        <h2>${esc(c.flowers.heading)}</h2>
+        <p class="body">${esc(c.flowers.text)}</p>
       </div>
     </section>
 
-    <section class="section form-section" id="poptavka">
-      <div class="section-head">
+    <section class="inquiry" id="poptavka">
+      <div class="center">
         <h2>${esc(c.form.heading)}</h2>
-        <p>${esc(c.form.text)}</p>
+        <p class="body">${esc(c.form.text)}</p>
       </div>
       <form id="inquiry" action="${esc(c.form.endpoint)}" method="post" novalidate>
         ${demo ? `<p class="demo-badge">${esc(c.form.demoBadge)}</p>` : ""}
@@ -193,7 +222,7 @@ export function render({ demo = true, offline = false } = {}) {
           <label for="f-hp">Toto pole nevyplňujte</label>
           <input id="f-hp" name="company_fax" type="text" tabindex="-1" autocomplete="off">
         </div>
-        <button class="btn btn-submit" type="submit">${esc(c.form.submit)}</button>
+        <button class="btn btn-dark btn-submit" type="submit">${esc(c.form.submit)}</button>
         <div id="form-status" class="status" role="status" aria-live="polite" tabindex="-1"></div>
         <noscript><p class="status status-error is-on">K odeslání poptávky je potřeba zapnutý JavaScript.</p></noscript>
       </form>
@@ -201,9 +230,15 @@ export function render({ demo = true, offline = false } = {}) {
   </main>
 
   <footer class="foot">
-    <p class="foot-brand">${esc(c.site.brand)}</p>
-    <p>${footerBits.join(" · ")}</p>
-    <p>${privacy}</p>
+    ${img(c.footer.photo, { cls: "foot-bg" })}
+    <div class="foot-inner">
+      <p class="foot-heading">${esc(c.footer.heading)}</p>
+      <div class="foot-meta">
+        <span class="brand">${brand(c)}</span>
+        <p>${footerBits.join(" ")}</p>
+      </div>
+      ${demo && c.site.previewNote ? `<p class="foot-note">${esc(c.site.previewNote)}</p>` : ""}
+    </div>
   </footer>
 
   <script type="application/json" id="site-config">${JSON.stringify(config).replace(/</g, "\\u003c")}</script>

@@ -1,4 +1,4 @@
-# Kuchyně světa u vás doma
+# By Velychko – kuchyně světa u vás doma
 
 Jednostránkový web osobní šéfkuchařky. Statická stránka sestavená z jednoho souboru s obsahem a malý Node server, který přijímá poptávky. Žádné závislosti, žádný CMS.
 
@@ -20,23 +20,19 @@ Náhled běží na <http://localhost:4173>. Po úpravě `content.mjs` server res
 | `build.mjs` | Šablona stránky (HTML). |
 | `public/styles.css`, `public/app.js` | Vzhled a chování formuláře. |
 | `public/validate.js` | Pravidla formuláře, společná pro prohlížeč i server. |
-| `public/photos/` | Fotky (zatím označené zástupné snímky). |
+| `public/brand/`, `public/photos/`, `public/fonts/` | Logo, vlastní fotky a písma. |
 | `server.mjs` | Náhled a příjem poptávek. |
 
-Nové menu: přidejte položku do `menus.items` v `content.mjs` (`id`, název, text, tlačítko, fotka). Karta i volba ve formuláři vzniknou samy. Vzpomínka z cest se zobrazí, jakmile vyplníte `about.memory`.
+Nové menu: přidejte položku do `menus.items` v `content.mjs` (`id`, název, text, tlačítko). Položka na kartě i volba ve formuláři vzniknou samy. Vzpomínka z cest se zobrazí, jakmile vyplníte `chef.memory`.
 
-## Výměna fotek
+## Vzhled, fotky a písma
 
-Každá fotka má dva výřezy. Nahrajte soubory do `public/photos/` (ideálně WebP nebo JPEG), v `content.mjs` přepište `src`, `width`, `height` a `alt` a nastavte `placeholder: false` – zmizí štítek „Zástupný snímek“.
+Vzhled vychází ze šablony [La Brisa](https://labrisa.framer.website/) a slouží jako návrh pro klientku.
 
-| Fotka | Mobil | Desktop |
-| --- | --- | --- |
-| Úvod (jídlo na stole s květinami) | na šířku 4:3, cca 1200 × 900 | na výšku 4:5, cca 1600 × 2000 |
-| Menu (každé zvlášť) | 4:3, cca 1200 × 900 | 16:10, cca 1600 × 1000 |
-| Květiny | na výšku 4:5, cca 1200 × 1500 | na šířku 3:2, cca 1600 × 1067 |
-| Portrét | čtverec, cca 1200 × 1200 | na výšku 4:5, cca 1200 × 1500 |
-
-Úvodní fotka se načítá přednostně, ostatní až při posunu. Hlavní motiv držte uprostřed, stránka fotky ořezává na střed.
+- **Fotky a ilustrace** se zatím načítají přímo ze šablony (adresy `framerusercontent.com` v `content.mjs`). Jsou jen ukázkové; na ostrý web k nim nemáme práva. Vlastní fotky nahrajte do `public/photos/` a v `content.mjs` přepište `src` (např. `"photos/uvod.jpg"`). Portrét Oksany se zobrazí po vyplnění `chef.portrait.src`.
+- **Nadpisy v písmu Albra:** stránka ho zatím bere jen z písem nainstalovaných v počítači. Kdo Albru nainstalovanou nemá, uvidí náhradní DM Serif Display. Licencované webové soubory (`.woff2`) uložte do `public/fonts/` a v `public/styles.css` doplňte do obou `@font-face` řádek `url("fonts/…woff2") format("woff2")`. Zkušební (TRIAL) soubory na web nepatří.
+- **Ostatní písma** (Geist, ručně psané La Belle Aurore, DM Serif Display) se načítají z Google Fonts.
+- **Logo:** značka je v `public/brand/mark.svg`, název „By Velychko“ se píše Albrou.
 
 ## Zapojení příjmu poptávek
 
@@ -61,7 +57,8 @@ Ochrana proti spamu: skryté pole, podepsaný čas načtení formuláře (odesl�
 
 ## Před publikací potvrdit s klientkou
 
-- jméno a značku (teď pracovní název v `site.brand`)
+- texty o Oksaně (sekce `chef` v `content.mjs`) – jsou návrh, potřebují její schválení
+- licenci na šablonu La Brisa, pokud má vzhled zůstat takto blízko předloze
 - regiony a menu (teď jedna pracovní ukázka „Večer v Provence“)
 - výzdobu: doplněk, nebo součást vybraných menu
 - oblast dojezdu
