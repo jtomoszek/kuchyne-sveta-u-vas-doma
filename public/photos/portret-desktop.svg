@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500" role="img" aria-label="Zástupný snímek: Portrét šéfkuchařky">
+<defs><radialGradient id="g" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#b8a995"/><stop offset="1" stop-color="#6b5a4a"/></radialGradient></defs>
+<rect width="1200" height="1500" fill="url(#g)"/>
+<circle cx="600" cy="750" r="360" fill="#fff" opacity=".16"/>
+<circle cx="600" cy="750" r="259.2" fill="none" stroke="#fff" stroke-width="4" opacity=".35"/>
+<g font-family="Georgia, serif" fill="#fff" text-anchor="middle">
+<text x="600" y="700.5" font-size="30.250000000000004" letter-spacing="6.6" font-family="Helvetica, Arial, sans-serif" font-weight="700">ZÁSTUPNÝ SNÍMEK</text>
+<text x="600" y="777.5" font-size="63.24999999999999" font-weight="700">Portrét šéfkuchařky</text>
+<text x="600" y="838" font-size="30.250000000000004" font-family="Helvetica, Arial, sans-serif">při vaření nebo servírování · desktop 4:5</text>
+</g></svg>

@@ -1,0 +1,12 @@
+{
+  "name": "kuchyne-sveta-u-vas-doma",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "node build.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
