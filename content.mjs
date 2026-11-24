@@ -28,8 +28,8 @@ export default {
   },
 
   menus: {
-    heading: "Na co máte chuť?",
-    text: "Vyberte si kuchyni, která vás láká. Nebo mi řekněte, co máte rádi, a já navrhnu menu pro vaše hosty.",
+    heading: "Na který kout světa máte chuť?",
+    text: "Vyberte si zemi nebo kraj, kam se chcete od svého stolu podívat, a já vás provedu jeho chutěmi. A když si nevíte rady, řekněte mi, co máte rádi. Cíl cesty vyberu já.",
     // Další menu přidávejte až z podkladů klientky. `id` se posílá s poptávkou.
     items: [
       {
