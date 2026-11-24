@@ -74,7 +74,7 @@ Ochrana proti spamu: skryté pole, podepsaný čas načtení formuláře (odesl�
 Statický náhled běží na GitHub Pages z větve `gh-pages`: <https://jtomoszek.github.io/kuchyne-sveta-u-vas-doma/>. Formulář v něm jen kontroluje údaje a nic neodesílá, stránka má `noindex`. Aktualizace náhledu po změnách:
 
 ```bash
-npm run build && npx --yes gh-pages@6 -d dist --nojekyll
+npm run preview:deploy
 ```
 
 Ostrý web zatím není nikde nasazený.
