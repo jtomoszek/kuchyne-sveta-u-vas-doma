@@ -55,8 +55,8 @@ export default {
   },
 
   flowers: {
-    heading: "Květiny pro váš stůl",
-    text: "Moje dcera má vlastní květinářství. Pokud si přejete i výzdobu, společně sladíme květiny s menu, příležitostí i místem, kde budete hostit.",
+    heading: "Večer, ve kterém všechno hraje",
+    text: "Jídlo je zážitek. Ale teprve stůl, od kterého se nikomu nechce vstávat, z něj dělá večer. Moje dcera má vlastní květinářství, a pokud si to budete přát, promění místo, kde hostíte, tak, aby ladilo s menu, s příležitostí i s vámi. Já přivezu chutě, ona atmosféru. Vy jen otevřete dveře hostům.",
     photo: {
       mobile: { src: "photos/kvetiny-mobile.svg", width: 1200, height: 1500 },
       desktop: { src: "photos/kvetiny-desktop.svg", width: 1600, height: 1067 },
